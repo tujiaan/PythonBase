@@ -1,0 +1,46 @@
+version: "2"
+services:
+  yiyiwei:
+    image: kaive/yiyiwei
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+      - SQLALCHEMY_DATABASE_URI=mysql+mysqlconnector://root:123456@db/yiyiwei
+      - REDIS_URI=redis://redis:6379/
+    volumes:
+      - ./:/usr/src/app
+    build: .
+    container_name: yiyiwei
+    depends_on:
+      - db
+      - redis
+  init:
+    image: kaive/yiyiwei
+    environment:
+      - SQLALCHEMY_DATABASE_URI=mysql+mysqlconnector://root:123456@db/yiyiwei
+    volumes:
+      - ./:/usr/src/app
+    build: .
+    container_name: yiyiwei_init
+    command: [ "python", "run_test.py" ]
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: mariadb:10.2
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+      - CHARACTER-SET-SERVER=utf8mb4
+      - COLLATION-SERVER=utf8mb4_unicode_ci
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    container_name: yiyiwei-db
+  redis:
+    image: redis
+    container_name: yiyiwei-redis
+    restart: always
